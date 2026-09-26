@@ -3,6 +3,7 @@ name = "flycns-tictactoe"
 version = "0.1.0"
 description = "A connectome-based Tic-Tac-Toe agent using the Drosophila MaleCNS."
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "networkx>=3.6.1",
@@ -10,6 +11,10 @@ dependencies = [
     "pandas>=2.0",
     "python-dotenv>=1.0",
 ]
+
+[project.scripts]
+flycns-tictactoe = "flycns.main:main"
+flycns-play = "flycns.game:play_vs_flybrain"
 
 [build-system]
 requires = ["hatchling"]

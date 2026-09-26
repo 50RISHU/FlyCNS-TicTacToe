@@ -1,6 +1,4 @@
-def main():
-    print("Hello from flycns-tictactoe!")
-
+from flycns.main import main
 
 if __name__ == "__main__":
     main()

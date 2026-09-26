@@ -11,7 +11,17 @@ def get_neurons(client: Client, criteria):
     return neurons, synapses
 
 def get_connections(client: Client, source=None, target=None):
-    edges, neuron_info = fetch_adjacencies(source, target, client=client)
+    """Return (neuron_info, edges).
 
-    return edges, neuron_info
+    fetch_adjacencies() returns (neurons_df, roi_conn_df) -- neurons
+    FIRST, connections SECOND (confirmed directly from the installed
+    neuprint-python's docstring: "Returns: Two DataFrames,
+    (neurons_df, roi_conn_df)..."). It's easy to get this backwards
+    because some example code online names its local variables
+    `outgoing_edges, neuron_info = fetch_adjacencies(...)`, which reads
+    like "edges first" but is just that example's own (misleading)
+    variable names, not the actual return order.
+    """
+    neuron_info, edges = fetch_adjacencies(source, target, client=client)
 
+    return neuron_info, edges
