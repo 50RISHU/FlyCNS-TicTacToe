@@ -1,16 +1,26 @@
-"""Playable tic-tac-toe: a human (or a second FlyBrainAgent) against a
-circuit built from the Drosophila male-CNS connectome.
+"""Simple tic-tac-toe gameplay loop using the connectome-backed agent.
+
+This module provides a human-playable interface and a lightweight self-play mode
+for checking that the trained circuit behaves sensibly across different board
+states.
 """
+
 from .agent import FlyBrainAgent
 
 WIN_LINES = [
-    (0, 1, 2), (3, 4, 5), (6, 7, 8),
-    (0, 3, 6), (1, 4, 7), (2, 5, 8),
-    (0, 4, 8), (2, 4, 6),
+    (0, 1, 2),
+    (3, 4, 5),
+    (6, 7, 8),
+    (0, 3, 6),
+    (1, 4, 7),
+    (2, 5, 8),
+    (0, 4, 8),
+    (2, 4, 6),
 ]
 
 
 def check_winner(board):
+    """Return the winning mark, or 'draw' if the board is full, else None."""
     for a, b, c in WIN_LINES:
         if board[a] and board[a] == board[b] == board[c]:
             return board[a]
@@ -20,8 +30,9 @@ def check_winner(board):
 
 
 def print_board(board):
+    """Render the board to the terminal with numbered cells for empty positions."""
     symbols = [cell if cell else str(i + 1) for i, cell in enumerate(board)]
-    rows = [symbols[i:i + 3] for i in range(0, 9, 3)]
+    rows = [symbols[i : i + 3] for i in range(0, 9, 3)]
     print()
     for row in rows:
         print(" ".join(row))
@@ -29,6 +40,7 @@ def print_board(board):
 
 
 def human_move(board):
+    """Prompt the user for a legal move and return the selected cell index."""
     while True:
         raw = input("Your move (1-9): ").strip()
         if not raw.isdigit():
@@ -45,6 +57,7 @@ def human_move(board):
 
 
 def play_vs_flybrain(human_mark: str = "X"):
+    """Play a local human-vs-agent game using the circuit-backed strategy."""
     agent_mark = "O" if human_mark == "X" else "X"
     agent = FlyBrainAgent()
 
@@ -77,10 +90,7 @@ def play_vs_flybrain(human_mark: str = "X"):
 
 
 def flybrain_vs_flybrain(verbose: bool = True):
-    """Two independent FlyBrainAgent instances play each other -- useful
-    for sanity-checking that the circuit doesn't just always pick the
-    same cell regardless of board state.
-    """
+    """Run a two-agent game to sanity-check that the circuit decision logic is stable."""
     agent_x = FlyBrainAgent()
     agent_o = FlyBrainAgent()
     agents = {"X": agent_x, "O": agent_o}

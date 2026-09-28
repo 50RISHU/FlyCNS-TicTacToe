@@ -1,7 +1,10 @@
+"""Environment configuration for the NeuPrint client used by the project."""
+
 import os
 
 from dotenv import load_dotenv
 
+# Load environment variables from a local .env file when present.
 load_dotenv()
 
 NEUPRINT_SERVER = os.getenv("NEUPRINT_SERVER", "https://neuprint.janelia.org")

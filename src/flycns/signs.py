@@ -1,33 +1,19 @@
-"""Neurotransmitter -> sign mapping.
+"""Map predicted neurotransmitters to excitatory or inhibitory signs.
 
-male-cns (like MANC and the optic-lobe connectome) annotates each neuron
-with a predicted neurotransmitter in the ``predictedNt`` column (Berg et
-al. 2025). Nothing else in this pipeline uses that column, which means
-every edge produced by ``build_graph`` looks "excitatory" by default
-(``weight`` is just a synapse count). That's fine for pure graph
-analysis, but useless for a simulation that has to decide between
-mutually exclusive moves, where inhibition matters as much as
-excitation.
-
-The excitatory/inhibitory split below follows the convention used in
-recent fly connectome papers (e.g. Shiu et al. 2023, Lin et al. 2024):
-acetylcholine is treated as excitatory, GABA and glutamate as
-inhibitory, and the aminergic/peptidergic transmitters are left as
-neutral/modulatory (sign 0) since their effect depends on which
-receptor the postsynaptic neuron expresses -- information neuprint
-does not provide.
+NeuPrint annotations provide a predicted transmitter for each neuron in the
+``predictedNt`` column. That information is useful for simulations because the
+same synapse count can represent either an excitatory drive or a suppressive one
+depending on the presynaptic neuron type.
 """
 
 EXCITATORY = {"acetylcholine"}
 INHIBITORY = {"gaba", "glutamate"}
-# dopamine, serotonin, octopamine, tyramine, histamine, "unclear", and
-# None are all left as modulatory / unsigned (sign 0) -- see module
-# docstring above.
+# Dopamine, serotonin, octopamine, tyramine, histamine, "unclear", and None are
+# treated as modulatory or unknown and therefore assigned sign 0.
 
 
 def sign_for_transmitter(transmitter) -> int:
-    """Map a single predictedNt value to +1 (excitatory), -1
-    (inhibitory), or 0 (modulatory / unknown / missing)."""
+    """Map a single predicted neurotransmitter to +1, -1, or 0."""
     if not isinstance(transmitter, str):
         return 0
 
@@ -43,11 +29,10 @@ def sign_for_transmitter(transmitter) -> int:
 
 
 def neuron_signs(neuron_annotations) -> dict:
-    """Build a ``{bodyId: sign}`` map from a neuron annotation dataframe.
+    """Build a {bodyId: sign} mapping from a neuron-annotation dataframe.
 
-    Returns an empty dict (rather than raising) if the dataset doesn't
-    expose a ``predictedNt`` column, so callers can treat "no NT data"
-    and "all-unsigned" the same way instead of crashing.
+    If the dataset does not contain a ``predictedNt`` column, the function returns
+    an empty dict instead of raising an exception.
     """
     if "predictedNt" not in neuron_annotations.columns:
         return {}

@@ -1,20 +1,18 @@
-"""A small leaky-integrator simulation over the signed core graph.
+"""A lightweight leaky-integrator model over the signed core graph.
 
-This is deliberately NOT a biophysical spiking model -- it's the
-simplest numerically-stable way to turn "inject activation at some
-neurons" into "read out activation at some other neurons" while still
-running through the *real* wiring and *real* excitatory/inhibitory
-signs pulled from the connectome (see signs.py). Swap this out for
-something like Brian2 later if you want actual spiking dynamics -- the
-graph and the I/O convention in circuit.py don't depend on which
-simulator reads them.
+This is intentionally simpler than a biological spiking model: it provides a
+stable, numerically robust way to transform injected activity at one set of
+neurons into a dynamic activation pattern across the network while respecting the
+connectome-derived excitatory and inhibitory signs.
 """
-import numpy as np
+
 import networkx as nx
+import numpy as np
 
 
 class CoreSimulator:
     def __init__(self, graph: nx.DiGraph, decay: float = 0.7, steps: int = 15):
+        """Initialize the simulator with a graph and fixed dynamical parameters."""
         self.graph = graph
         self.decay = decay
         self.steps = steps
@@ -23,9 +21,9 @@ class CoreSimulator:
         self.index = {node: i for i, node in enumerate(self.node_ids)}
         n = len(self.node_ids)
 
-        # A[i, j] = signed weight of the edge j -> i, scaled by the
-        # largest edge weight in the graph so the simulation's behavior
-        # doesn't depend on the raw synapse-count scale.
+        # A[i, j] represents the signed connection from j to i. We normalize by the
+        # largest absolute edge weight so the behavior does not depend on raw
+        # synapse-count scale.
         weights = [
             abs(data.get("signed_weight", data.get("weight", 0.0)))
             for _, _, data in graph.edges(data=True)
@@ -41,10 +39,14 @@ class CoreSimulator:
         self.A = A
 
     def run(self, injection: dict) -> dict:
-        """injection: {bodyId: value}, an external drive held constant
-        at every step (a sustained stimulus, not a single pulse).
-        Returns {bodyId: final_activation} for every node in the core
-        graph.
+        """Run the simulation for a sustained external input.
+
+        Args:
+            injection: A mapping of bodyId -> value describing the constant drive
+                applied to selected neurons.
+
+        Returns:
+            A mapping of bodyId -> final activation for every node in the core graph.
         """
         n = len(self.node_ids)
         drive = np.zeros(n)

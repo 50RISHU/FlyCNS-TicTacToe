@@ -1,17 +1,21 @@
-"""FlyBrainAgent: turns a tic-tac-toe board into a move by driving the
-core connectome circuit and reading off which output group ends up most
-active among the still-empty cells.
+"""Agent that converts a tic-tac-toe board state into a legal move.
+
+The agent treats each board cell as a drive site in the saved fly core circuit,
+then reads the activity of the corresponding output neurons to choose the most
+promising move. A minimax safety layer can be enabled to ensure the final move
+remains game-theoretically optimal whenever a safe choice exists.
 """
+
 from .circuit import (
     N_CELLS,
+    build_input_groups,
+    build_output_groups,
     load_core_graph,
     load_core_neurons,
     load_selected_output_neurons,
-    build_output_groups,
-    build_input_groups,
 )
-from .simulate import CoreSimulator
 from .minimax import optimal_moves
+from .simulate import CoreSimulator
 
 
 class FlyBrainAgent:
@@ -26,6 +30,7 @@ class FlyBrainAgent:
         steps: int = 15,
         unbeatable: bool = True,
     ):
+        """Initialize the circuit-backed decision agent."""
         self.graph = load_core_graph(graph_path)
         core_neurons = load_core_neurons(core_neurons_path)
         output_neurons = load_selected_output_neurons(output_neurons_path)
@@ -37,20 +42,22 @@ class FlyBrainAgent:
         self.opponent_drive = opponent_drive
         self.simulator = CoreSimulator(self.graph, decay=decay, steps=steps)
 
-        # When True, the circuit's activation only breaks ties among
-        # moves that are already game-theoretically optimal (see
-        # minimax.py) -- it can influence WHICH good move gets played,
-        # but it can never cause a loss. Set False to see what the
-        # connectome does on its own, with no safety net.
+        # When enabled, the circuit only breaks ties among moves that are already
+        # game-theoretically optimal. This keeps the biological signal from
+        # producing a losing move while still allowing it to prefer among good
+        # options. Setting this to False exposes the raw circuit policy.
         self.unbeatable = unbeatable
 
     def choose_move(self, board, mark: str):
-        """board: list of length 9, each entry 'X', 'O', or None/''.
-        mark: 'X' or 'O' -- which mark this agent is playing.
+        """Choose a legal move for the given mark.
 
-        Returns (cell_index, scores) where `scores` is {cell: activation}
-        for every empty cell (the circuit's raw opinion, for inspection),
-        regardless of whether `unbeatable` restricted the final choice.
+        Args:
+            board: A 9-slot board with entries 'X', 'O', or None.
+            mark: The mark being played by this agent, either 'X' or 'O'.
+
+        Returns:
+            A tuple of (cell_index, scores), where scores maps each empty cell to
+            the circuit's raw activation estimate for that move.
         """
         opponent = "O" if mark == "X" else "X"
 

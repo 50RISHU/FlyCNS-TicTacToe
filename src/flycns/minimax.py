@@ -1,22 +1,27 @@
 """Exact minimax solver for tic-tac-toe.
 
-Tic-tac-toe is a solved game: with perfect play from both sides every
-game is a draw, and perfect play never loses regardless of who moves
-first. A static, memoryless circuit (like `simulate.CoreSimulator`) has
-no look-ahead, so it can't guarantee this on its own -- this module is
-what actually makes "unbeatable" true, independent of how good or bad
-the connectome's own activation happens to be.
+Tic-tac-toe is a solved game: perfect play never loses, and every full game
+with optimal play from both sides ends in a draw. This module provides the
+fallback policy that makes the circuit-backed agent effectively unbeatable,
+independent of the raw activity produced by the biological network.
 """
+
 from functools import lru_cache
 
 WIN_LINES = [
-    (0, 1, 2), (3, 4, 5), (6, 7, 8),
-    (0, 3, 6), (1, 4, 7), (2, 5, 8),
-    (0, 4, 8), (2, 4, 6),
+    (0, 1, 2),
+    (3, 4, 5),
+    (6, 7, 8),
+    (0, 3, 6),
+    (1, 4, 7),
+    (2, 5, 8),
+    (0, 4, 8),
+    (2, 4, 6),
 ]
 
 
 def _winner(board):
+    """Return the winning mark, 'draw' for a full board, or None."""
     for a, b, c in WIN_LINES:
         if board[a] and board[a] == board[b] == board[c]:
             return board[a]
@@ -27,6 +32,7 @@ def _winner(board):
 
 @lru_cache(maxsize=None)
 def _minimax(board_key, turn, me):
+    """Recursively score a board position from the perspective of `me`."""
     board = list(board_key)
     result = _winner(board)
 
@@ -50,11 +56,10 @@ def _minimax(board_key, turn, me):
 
 
 def optimal_moves(board, mark):
-    """Return (moves, score): the list of empty cells that are
-    game-theoretically optimal for `mark` to play right now, and the
-    resulting score (1 = mark wins with perfect play from here, 0 =
-    draw, -1 = mark loses with perfect play from here -- this can only
-    happen if the position was already lost before this move).
+    """Return the optimal legal moves and their minimax score for the given mark.
+
+    The score indicates whether perfect play from this position leads to a win,
+    draw, or loss for `mark`.
     """
     board = list(board)
     opponent = "O" if mark == "X" else "X"
