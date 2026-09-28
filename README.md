@@ -20,6 +20,8 @@ engineering convention, documented below and in the code. That's the
 honest framing for this project: it's "a game agent with a biological
 circuit as its decision core," not "a fly brain that plays games."
 
+> 🪰 Built for fun with the help of AI — a curiosity-driven experiment in seeing what a real fly-brain circuit can do when it plays tic-tac-toe.
+
 ## Data source & license
 
 - Dataset: `male-cns:v1.0` — male *Drosophila melanogaster* central
